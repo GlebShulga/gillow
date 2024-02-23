@@ -22,46 +22,50 @@ const App = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const loadBlockchainData = async () => {
-    const provider = new ethers.BrowserProvider(window.ethereum);
-    setProvider(provider);
+    try {
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      setProvider(provider);
 
-    const network = await provider.getNetwork();
+      const network = await provider.getNetwork();
 
-    const realEstate = new ethers.Contract(
-      config[network.chainId].realEstate.address,
-      RealEstate,
-      provider
-    );
-    const totalSupply = await realEstate.totalSupply();
-    const realEstateObjects = await Promise.all(
-      Array.from({ length: Number(totalSupply) }, async (_, i) => {
-        const uri = await realEstate.tokenURI(i + 1);
-        const response = await fetch(uri);
-        return response.json();
-      })
-    );
-    setRealEstateObjects(realEstateObjects);
+      const realEstate = new ethers.Contract(
+        config[network.chainId].realEstate.address,
+        RealEstate,
+        provider
+      );
+      const totalSupply = await realEstate.totalSupply();
+      const realEstateObjects = await Promise.all(
+        Array.from({ length: Number(totalSupply) }, async (_, i) => {
+          const uri = await realEstate.tokenURI(i + 1);
+          const response = await fetch(uri);
+          return response.json();
+        })
+      );
+      setRealEstateObjects(realEstateObjects);
 
-    const escrow = new ethers.Contract(
-      config[network.chainId].escrow.address,
-      Escrow,
-      provider
-    );
-    setEscrow(escrow);
+      const escrow = new ethers.Contract(
+        config[network.chainId].escrow.address,
+        Escrow,
+        provider
+      );
+      setEscrow(escrow);
 
-    const accounts = await provider.listAccounts();
+      const accounts = await provider.listAccounts();
 
-    if (accounts.length > 0) {
-      setAccount(accounts[0].address);
-    }
+      if (accounts.length > 0) {
+        setAccount(accounts[0].address);
+      }
 
-    window.ethereum.on("accountsChanged", async () => {
-      const accounts = await window.ethereum.request({
-        method: "eth_requestAccounts",
+      window.ethereum.on("accountsChanged", async () => {
+        const accounts = await window.ethereum.request({
+          method: "eth_requestAccounts",
+        });
+        const account = ethers.getAddress(accounts[0]);
+        setAccount(account);
       });
-      const account = ethers.getAddress(accounts[0]);
-      setAccount(account);
-    });
+    } catch (error) {
+      console.error("An error occurred while loading blockchain data:", error);
+    }
   };
 
   useEffect(() => {
@@ -87,9 +91,12 @@ const App = () => {
               key={realEstateObject.id}
               onClick={() => propertyHandleClick(realEstateObject)}
             >
-              <div className="card__image">
-                <img src={realEstateObject.image} alt="Property" />
-              </div>
+              <img
+                className="card__image"
+                src={realEstateObject.image}
+                alt="Property"
+              />
+
               <div className="card__info">
                 <h4>{realEstateObject.attributes[0].value} ETH</h4>
                 <p>

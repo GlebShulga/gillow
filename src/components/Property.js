@@ -188,9 +188,7 @@ const Property = ({
   return (
     <div className="home">
       <div className="home__details">
-        <div className="home__image">
-          <img src={realEstateObject.image} alt="Home" />
-        </div>
+        <img className="home__image" src={realEstateObject.image} alt="Home" />
         <div className="home__overview">
           <h1>{realEstateObject.name}</h1>
           <p>
